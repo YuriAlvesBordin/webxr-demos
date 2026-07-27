@@ -312,6 +312,9 @@
   <script type="module">
     import * as THREE from 'three';
 
+    let paused = false;
+    document.addEventListener('visibilitychange', () => { paused = document.hidden; });
+
     function makeRenderer(canvasId) {
       const canvas = document.getElementById(canvasId);
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -345,9 +348,6 @@
 
     document.querySelectorAll('.card-thumb').forEach(el => resizeObserver.observe(el));
 
-    function hex(h) { return new THREE.Color(h); }
-
-    /* ─── PREVIEW 1: Primitives morphing ─── */
     (function() {
       const renderer = makeRenderer('preview-1');
       const canvas = document.getElementById('preview-1');
@@ -407,6 +407,7 @@
       let t = 0;
       (function loop() {
         requestAnimationFrame(loop);
+        if (paused) return;
         t += 0.012;
         meshA.rotation.y = t * 0.6;
         meshA.rotation.x = Math.sin(t * 0.3) * 0.4;
@@ -428,7 +429,6 @@
       })();
     })();
 
-    /* ─── PREVIEW 2: Atomic model ─── */
     (function() {
       const renderer = makeRenderer('preview-2');
       const canvas = document.getElementById('preview-2');
@@ -469,6 +469,7 @@
       let t = 0;
       (function loop() {
         requestAnimationFrame(loop);
+        if (paused) return;
         t += 0.018;
         nucleus.rotation.y = t * 0.3;
         electrons.forEach(e => {
@@ -487,7 +488,6 @@
       })();
     })();
 
-    /* ─── PREVIEW 3: Rotating polyhedron (model importer placeholder) ─── */
     (function() {
       const renderer = makeRenderer('preview-3');
       const canvas = document.getElementById('preview-3');
@@ -538,6 +538,7 @@
       let t = 0;
       (function loop() {
         requestAnimationFrame(loop);
+        if (paused) return;
         t += 0.014;
         ico.rotation.x = t * 0.25;
         ico.rotation.y = t * 0.4;
