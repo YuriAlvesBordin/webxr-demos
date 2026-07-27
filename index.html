@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -132,7 +132,7 @@
     .card-link svg { transition: transform 0.2s ease; }
     .card:hover .card-link svg { transform: translateX(4px); }
 
-    /* Tablet: 2 colunas para evitar vw critico antes do breakpoint mobile */
+    /* Tablet: 2 columns to avoid critical vw before mobile breakpoint */
     @media (max-width: 1024px) {
       main { grid-template-columns: 1fr 1fr; }
       .card:nth-child(2) { border-right: none; }
@@ -143,8 +143,8 @@
       main { grid-template-columns: 1fr; }
       .card { border-right: none; min-height: auto; padding: 28px 24px; }
 
-      /* Em mobile as fontes baseadas em vw ficam muito pequenas com 1 coluna,
-         entao redefine com valores fixos confortaveis */
+      /* On mobile, vw-based font sizes get too small with 1 column,
+         so redefine with comfortable fixed values */
       h1              { font-size: 2.2rem; letter-spacing: -1px; }
       .header-eyebrow { font-size: 0.7rem; }
       .header-sub     { font-size: 0.875rem; }
@@ -158,22 +158,22 @@
 <body>
 
   <header>
-    <p class="header-eyebrow">Computacao Grafica</p>
+    <p class="header-eyebrow">Computer Graphics</p>
     <h1>A-Frame Demo</h1>
-    <p class="header-sub">Yuri Alves Bordin &mdash; Demonstracao de biblioteca WebXR</p>
+    <p class="header-sub">Yuri Alves Bordin &mdash; WebXR library demonstration</p>
   </header>
 
   <main>
     <a class="card card-01" href="cenas/demo1.html">
       <div>
         <div class="card-indicator"></div>
-        <p class="card-num">01 / GEOMETRIA</p>
-        <h2 class="card-title">Primitivos em Morphing</h2>
-        <p class="card-desc">Geometrias nativas do A-Frame transitando entre formas, materiais e cores de forma continua e aleatoria.</p>
+        <p class="card-num">01 / GEOMETRY</p>
+        <h2 class="card-title">Primitives Morphing</h2>
+        <p class="card-desc">Native A-Frame geometries transitioning between shapes, materials and colors continuously and randomly.</p>
       </div>
       <div class="card-bottom">
         <span class="card-link">
-          Abrir
+          Open
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -184,13 +184,13 @@
     <a class="card card-02" href="cenas/demo2.html">
       <div>
         <div class="card-indicator"></div>
-        <p class="card-num">02 / ILUMINACAO</p>
-        <h2 class="card-title">Modelo Atomico</h2>
-        <p class="card-desc">Nucleo central com eletrons orbitando em planos distribuidos. Quantidade de eletrons configuravel de 1 a 10 via slider.</p>
+        <p class="card-num">02 / LIGHTING</p>
+        <h2 class="card-title">Atomic Model</h2>
+        <p class="card-desc">Central nucleus with electrons orbiting in distributed planes. Number of electrons configurable from 1 to 10 via slider.</p>
       </div>
       <div class="card-bottom">
         <span class="card-link">
-          Abrir
+          Open
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -201,13 +201,13 @@
     <a class="card card-03" href="cenas/demo3.html">
       <div>
         <div class="card-indicator"></div>
-        <p class="card-num">03 / IMPORTACAO</p>
-        <h2 class="card-title">Modelo 3D Externo</h2>
-        <p class="card-desc">Importe um arquivo .glb, .gltf ou .obj. O modelo e centralizado automaticamente e pode ser inspecionado com controles de orbita estilo Blender.</p>
+        <p class="card-num">03 / IMPORT</p>
+        <h2 class="card-title">External 3D Model</h2>
+        <p class="card-desc">Import a .glb, .gltf or .obj file. The model is automatically centered and can be inspected with Blender-style orbit controls.</p>
       </div>
       <div class="card-bottom">
         <span class="card-link">
-          Abrir
+          Open
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
             <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
