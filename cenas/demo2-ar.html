@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Demo 02 AR - Atomic Model</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { overflow: hidden; font-family: 'IBM Plex Mono', monospace; background: #000; }
+    #hud {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(6px);
+      border-bottom: 1px solid #1a1a1a; pointer-events: none;
+    }
+    #hud .badge { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: #ffd600; background: rgba(255,214,0,0.1); border: 1px solid #ffd600; border-radius: 4px; padding: 3px 8px; }
+    #hud .title { font-size: 0.75rem; color: #f0f0f0; letter-spacing: 1px; }
+    #hud .sub   { font-size: 0.6rem; color: #555; letter-spacing: 1px; }
+    #back {
+      position: fixed; top: 56px; left: 16px; z-index: 9999;
+      background: rgba(0,0,0,0.6); color: #fff; padding: 7px 14px;
+      border-radius: 8px; text-decoration: none; font-size: 0.78rem; pointer-events: auto;
+    }
+    #back:hover { background: rgba(255,255,255,0.1); }
+    #panel {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 9999; pointer-events: auto;
+      background: rgba(10,10,10,0.85); border: 1px solid #2a2a2a;
+      border-radius: 10px; padding: 14px 24px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    #panel label { font-size: 0.7rem; color: #777; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
+    #electron-count {
+      -webkit-appearance: none; width: 140px; height: 4px;
+      background: #2a2a2a; border-radius: 2px; outline: none; cursor: pointer;
+    }
+    #electron-count::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #ffd600; cursor: pointer; }
+    #electron-count::-moz-range-thumb    { width: 16px; height: 16px; border-radius: 50%; background: #ffd600; cursor: pointer; border: none; }
+    #count-display { font-size: 1.1rem; font-weight: 600; color: #ffd600; min-width: 20px; text-align: center; }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <span class="badge">AR</span>
+    <span class="title">Demo 02 - Atomic Model</span>
+    <span class="sub">Hiro Marker</span>
+  </div>
+  <a href="demo2.html" id="back">&#8592; Exit AR</a>
+  <div id="panel">
+    <label>Electrons</label>
+    <input type="range" id="electron-count" min="1" max="10" value="4">
+    <span id="count-display">4</span>
+  </div>
+
+  <a-scene
+    embedded
+    arjs="sourceType: webcam; debugUIEnabled: false;"
+    vr-mode-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true; antialias: true;"
+    loading-screen="enabled: false"
+  >
+    <a-entity camera></a-entity>
+
+    <a-marker preset="hiro" id="marker">
+      <a-sphere id="nucleus" position="0 0.3 0" radius="0.18"
+        material="color:#1a1a2e; roughness:0.1; metalness:0.95; emissive:#0a0a1a; emissiveIntensity:0.3">
+      </a-sphere>
+      <a-entity id="electrons-root" position="0 0.3 0"></a-entity>
+      <a-light type="ambient" color="#ffffff" intensity="0.1"></a-light>
+    </a-marker>
+  </a-scene>
+
+  <script>
+    const root    = document.getElementById('electrons-root');
+    const slider  = document.getElementById('electron-count');
+    const display = document.getElementById('count-display');
+    const ORBIT_R = 0.5, TRANSITION_MS = 1200, HOLD_MS = 3000;
+    const speeds  = [3000,4500,6000,5200,3800,7000,4100,5600,3300,6500];
+    let colorStates = [], colorTimers = [];
+
+    function randHSL() { return { h: Math.random()*360, s: 80+Math.random()*20, l: 50+Math.random()*15 }; }
+    function hslToHex(h,s,l) {
+      s/=100; l/=100;
+      const a=s*Math.min(l,1-l);
+      const f=n=>{ const k=(n+h/30)%12; const c=l-a*Math.max(Math.min(k-3,9-k,1),-1); return Math.round(255*c).toString(16).padStart(2,'0'); };
+      return '#'+f(0)+f(8)+f(4);
+    }
+    function lerpHSL(a,b,t) {
+      let dh=b.h-a.h; if(dh>180)dh-=360; if(dh<-180)dh+=360;
+      return {h:a.h+dh*t,s:a.s+(b.s-a.s)*t,l:a.l+(b.l-a.l)*t};
+    }
+    function startColorCycle(i) {
+      colorTimers[i]=setTimeout(function cycle(){
+        const sphereEl=document.getElementById('e'+i+'-sphere');
+        const lightEl =document.getElementById('e'+i+'-light');
+        if(!sphereEl||!lightEl)return;
+        const from=colorStates[i], to=randHSL(), start=performance.now();
+        function tick(now){
+          const t=Math.min((now-start)/TRANSITION_MS,1);
+          const eased=t<0.5?2*t*t:-1+(4-2*t)*t;
+          const mid=lerpHSL(from,to,eased), hex=hslToHex(mid.h,mid.s,mid.l);
+          if(document.getElementById('e'+i+'-sphere')){
+            sphereEl.setAttribute('material','color:'+hex+'; emissive:'+hex+'; emissiveIntensity:1; roughness:0; metalness:0');
+            lightEl.setAttribute('light','type:point; color:'+hex+'; intensity:2.5; distance:2; decay:2');
+          }
+          if(t<1)requestAnimationFrame(tick);
+          else{colorStates[i]=to; colorTimers[i]=setTimeout(cycle,HOLD_MS+Math.random()*1000);}
+        }
+        requestAnimationFrame(tick);
+      }, i*500+Math.random()*400);
+    }
+    function buildElectrons(count) {
+      colorTimers.forEach(t=>clearTimeout(t)); colorTimers=[]; colorStates=[];
+      while(root.firstChild)root.removeChild(root.firstChild);
+      for(let i=0;i<count;i++){
+        const tiltZ=(180/count)*i, tiltY=(360/count)*i;
+        const dur=speeds[i%speeds.length];
+        const initColor=randHSL(); colorStates[i]=initColor;
+        const hex=hslToHex(initColor.h,initColor.s,initColor.l);
+        const tilt=document.createElement('a-entity'); tilt.setAttribute('rotation','0 '+tiltY+' '+tiltZ);
+        const spinner=document.createElement('a-entity'); spinner.setAttribute('animation','property:rotation; from:0 0 0; to:0 360 0; loop:true; dur:'+dur+'; easing:linear');
+        const pivot=document.createElement('a-entity'); pivot.setAttribute('position',ORBIT_R+' 0 0');
+        const sphere=document.createElement('a-sphere'); sphere.setAttribute('id','e'+i+'-sphere'); sphere.setAttribute('radius','0.05');
+        sphere.setAttribute('material','color:'+hex+'; emissive:'+hex+'; emissiveIntensity:1; roughness:0; metalness:0');
+        const light=document.createElement('a-light'); light.setAttribute('id','e'+i+'-light'); light.setAttribute('type','point');
+        light.setAttribute('color',hex); light.setAttribute('intensity','2.5'); light.setAttribute('distance','2'); light.setAttribute('decay','2');
+        pivot.appendChild(sphere); pivot.appendChild(light); spinner.appendChild(pivot); tilt.appendChild(spinner); root.appendChild(tilt);
+        startColorCycle(i);
+      }
+    }
+    slider.addEventListener('input',()=>{ const n=parseInt(slider.value); display.textContent=n; buildElectrons(n); });
+    document.querySelector('a-scene').addEventListener('loaded',()=>{ buildElectrons(parseInt(slider.value)); });
+  </script>
+</body>
+</html>
