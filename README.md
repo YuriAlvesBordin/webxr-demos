@@ -4,8 +4,6 @@
 
 Interactive demos of the [A-Frame](https://aframe.io) library for building 3D scenes in the browser via WebXR. Developed as an academic project for the Computer Graphics course.
 
-<img width="1069" height="624" alt="image" src="https://github.com/user-attachments/assets/440e4cf8-cecd-4682-aaca-70ff51e62035" />
-
 ## Project Structure
 
 ```
