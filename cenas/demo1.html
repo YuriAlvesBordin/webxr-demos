@@ -73,14 +73,69 @@
   <script>
     const PRIMITIVES=[{tag:'a-box',attrs:{}},{tag:'a-sphere',attrs:{radius:'0.9'}},{tag:'a-cylinder',attrs:{radius:'0.7',height:'1.4'}},{tag:'a-cone',attrs:{'radius-bottom':'0.8',height:'1.6'}},{tag:'a-torus',attrs:{radius:'0.8','radius-tubular':'0.18'}},{tag:'a-torus-knot',attrs:{radius:'0.7','radius-tubular':'0.08'}},{tag:'a-icosahedron',attrs:{radius:'0.9'}},{tag:'a-dodecahedron',attrs:{radius:'0.9'}},{tag:'a-octahedron',attrs:{radius:'0.9'}},{tag:'a-tetrahedron',attrs:{radius:'0.9'}}];
     const COLORS=['#00c853','#ffd600','#2979ff','#ff1a1a','#00e5ff','#ff6d00','#d500f9','#76ff03','#f50057','#ffffff'];
-    let current=null,index=0;
+    const INTERVAL=2800,FADE_MS=700;
+    let current=null,index=0,intervalId=null,started=false;
+
     const container=document.getElementById('shape'),nameEl=document.getElementById('prim-name');
-    const INTERVAL=2800,FADE_MS=600;
+
     function randColor(){return COLORS[Math.floor(Math.random()*COLORS.length)];}
     function randFloat(min,max){return(Math.random()*(max-min)+min).toFixed(2);}
-    function buildMaterial(){const metalness=randFloat(0,1),roughness=randFloat(0,1),opacity=randFloat(0.35,1);const color=randColor(),emissive=Math.random()>0.6?randColor():'#000000';const wireframe=Math.random()>0.85?'true':'false',transparent=opacity<0.99?'true':'false';return `color:${color}; roughness:${roughness}; metalness:${metalness}; opacity:${opacity}; transparent:${transparent}; emissive:${emissive}; emissiveIntensity:0.4; wireframe:${wireframe}`;}
-    function spawnNext(){const def=PRIMITIVES[index%PRIMITIVES.length];index++;const el=document.createElement(def.tag);for(const[k,v]of Object.entries(def.attrs))el.setAttribute(k,v);el.setAttribute('material',buildMaterial());el.setAttribute('scale','0.001 0.001 0.001');el.setAttribute('rotation',`${Math.random()*360} ${Math.random()*360} ${Math.random()*360}`);el.setAttribute('animation__rot','property:rotation; to:'+`${Math.random()*720} ${360+Math.random()*360} ${Math.random()*360}`+'; dur:'+(INTERVAL*4)+'; easing:linear; loop:true');el.setAttribute('animation__scale_in','property:scale; from:0.001 0.001 0.001; to:1 1 1; dur:'+FADE_MS+'; easing:easeOutCubic');container.appendChild(el);nameEl.textContent=def.tag;if(current){const dying=current;dying.setAttribute('animation__scale_out','property:scale; to:0.001 0.001 0.001; dur:'+FADE_MS+'; easing:easeInCubic');setTimeout(()=>{if(dying.parentNode)dying.parentNode.removeChild(dying);},FADE_MS+50);}current=el;}
-    document.querySelector('a-scene').addEventListener('loaded',()=>{spawnNext();setInterval(spawnNext,INTERVAL);});
+
+    function buildMaterial(opacity){
+      const metalness=randFloat(0,1),roughness=randFloat(0,1);
+      const color=randColor(),emissive=Math.random()>0.6?randColor():'#000000';
+      const wireframe=Math.random()>0.85?'true':'false';
+      return `color:${color}; roughness:${roughness}; metalness:${metalness}; opacity:${opacity}; transparent:true; emissive:${emissive}; emissiveIntensity:0.4; wireframe:${wireframe}`;
+    }
+
+    function spawnNext(){
+      const def=PRIMITIVES[index%PRIMITIVES.length];
+      index++;
+
+      // Build new element fully transparent
+      const el=document.createElement(def.tag);
+      for(const[k,v]of Object.entries(def.attrs))el.setAttribute(k,v);
+      el.setAttribute('material',buildMaterial(0));
+      el.setAttribute('rotation',`${Math.random()*360} ${Math.random()*360} ${Math.random()*360}`);
+      el.setAttribute('animation__rot',
+        'property:rotation; to:'+`${Math.random()*720} ${360+Math.random()*360} ${Math.random()*360}`+
+        '; dur:'+(INTERVAL*4)+'; easing:linear; loop:true'
+      );
+      // Fade in via opacity
+      el.setAttribute('animation__fadein',
+        'property:material.opacity; from:0; to:1; dur:'+FADE_MS+'; easing:easeOutQuad'
+      );
+
+      container.appendChild(el);
+      nameEl.textContent=def.tag;
+
+      // Fade out the old element, then remove it
+      if(current){
+        const dying=current;
+        dying.removeAttribute('animation__fadein');
+        dying.setAttribute('animation__fadeout',
+          'property:material.opacity; from:1; to:0; dur:'+FADE_MS+'; easing:easeInQuad'
+        );
+        setTimeout(()=>{ if(dying.parentNode) dying.parentNode.removeChild(dying); }, FADE_MS+50);
+      }
+
+      current=el;
+    }
+
+    const scene=document.querySelector('a-scene');
+    scene.addEventListener('loaded',()=>{
+      // Guard against multiple 'loaded' firings (e.g. after hot-reload / F5 in some browsers)
+      if(started) return;
+      started=true;
+
+      spawnNext();
+      intervalId=setInterval(spawnNext,INTERVAL);
+    });
+
+    // Clean up on page unload so stale intervals never survive
+    window.addEventListener('beforeunload',()=>{
+      if(intervalId!==null){ clearInterval(intervalId); intervalId=null; }
+    });
   </script>
 </body>
 </html>
